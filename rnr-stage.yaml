@@ -12,19 +12,38 @@
 # 4. A module that instantiates other modules (id_stage, ex_stage, single_cycle_riscv) needs those
 #    modules listed here too.
 yaml_version: 1
-stage: decoder
-extend:
-  source_files: [imm_generator.sv]
+stage: execute
 
-regfile:
-  source_files: [register_file.sv]
+modules:
+  if_stage:
+    {source_files: [if_stage.sv]}
 
-maindec:
-  source_files: [main_control.sv]
+  decoder:
+    {source_files: [id_stage.sv]}
 
-aludec:
-  source_files: [ALU_control.sv]
+  imm_generator:
+    {source_files: [imm_generator.sv]}
 
-controller:
-  source_files: [id_stage.sv]
+  register_file:
+    {source_files: [register_file.sv]}
 
+  main_control:
+    {source_files: [main_control.sv]}
+
+  id_stage:
+    {source_files: [id_stage_top.sv]}
+
+  alu:
+    {source_files: [alu.sv]}
+
+  alu_control:
+    {source_files: [ALU_control.sv]}
+
+  ex_stage:
+    {source_files: [ex_stage.sv]}
+
+  mux3:
+    source_files: [mux3.sv]
+
+  datapath:
+    source_files: [datapath.sv]
