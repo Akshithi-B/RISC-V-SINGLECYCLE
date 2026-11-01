@@ -1,0 +1,68 @@
+`timescale 1ns / 1ps
+
+module if_stage_tb;
+
+    logic clk;
+    logic reset;
+    logic stall;
+    logic and_out;
+    logic [31:0] PC_so;
+
+    logic [31:0] address;
+    logic [31:0] PC_new;
+
+    // DUT
+    if_stage DUT (
+        .clk(clk),
+        .reset(reset),
+        .stall(stall),
+        .and_out(and_out),
+        .PC_so(PC_so),
+        .address(address),
+        .PC_new(PC_new)
+    );
+
+    // Clock generation
+    always #5 clk = ~clk;
+
+    initial begin
+        clk = 0;
+        reset = 1;
+        stall = 0;
+        and_out = 0;
+        PC_so = 0;
+
+        // Test 1: Reset
+        #10;
+        reset = 0;
+
+        // Test 2: Normal PC increment
+        #10;
+        and_out = 0;
+
+        // Test 3: Branch taken
+        #10;
+        and_out = 1;
+        PC_so = 32'h8000_0010;
+
+        // Test 4: Stall
+        #10;
+        stall = 1;
+        and_out = 0;
+
+        // Test 5: Resume
+        #10;
+        stall = 0;
+
+        #20;
+        $finish;
+    end
+
+    initial begin
+        $monitor(
+            "Time=%0t reset=%b stall=%b and_out=%b PC_so=%h address=%h PC_new=%h",
+            $time, reset, stall, and_out, PC_so, address, PC_new
+        );
+    end
+
+endmodule
