@@ -1,0 +1,132 @@
+`timescale 1ns / 1ps
+
+module ex_stage_tb;
+
+    // Inputs
+    logic [31:0] rs1_data;
+    logic [31:0] rs2_data;
+    logic [31:0] imm_out;
+    logic [31:0] address;
+    logic        branch;
+    logic        alu_src;
+    logic        fn7_5;
+    logic        mux_inp;
+    logic [2:0]  fn3;
+    logic [6:0]  imm11_5;
+    logic [2:0]  aluop;
+    logic [6:0]  opcode;
+
+    // Outputs
+    logic        and_out_ex;
+    logic [31:0] alu_out;
+    logic [31:0] pc_ex_out;
+
+    // DUT
+    ex_stage DUT (
+        .rs1_data(rs1_data),
+        .rs2_data(rs2_data),
+        .imm_out(imm_out),
+        .address(address),
+        .branch(branch),
+        .alu_src(alu_src),
+        .fn7_5(fn7_5),
+        .mux_inp(mux_inp),
+        .fn3(fn3),
+        .imm11_5(imm11_5),
+        .aluop(aluop),
+        .opcode(opcode),
+        .and_out_ex(and_out_ex),
+        .alu_out(alu_out),
+        .pc_ex_out(pc_ex_out)
+    );
+
+    initial begin
+
+        // Initialize
+        rs1_data = 0;
+        rs2_data = 0;
+        imm_out  = 0;
+        address  = 32'h8000_0000;
+        branch   = 0;
+        alu_src  = 0;
+        fn7_5    = 0;
+        mux_inp  = 0;
+        fn3      = 0;
+        imm11_5  = 0;
+        aluop    = 0;
+        opcode   = 0;
+
+        // Test 1 : ADD
+        #10;
+        rs1_data = 32'd10;
+        rs2_data = 32'd20;
+        aluop    = 3'b000;
+
+        // Test 2 : SUB
+        #10;
+        rs1_data = 32'd30;
+        rs2_data = 32'd10;
+        aluop    = 3'b001;
+
+        // Test 3 : AND
+        #10;
+        rs1_data = 32'hF0F0;
+        rs2_data = 32'h0FF0;
+        aluop    = 3'b010;
+
+        // Test 4 : Immediate ALU operation
+        #10;
+        rs1_data = 32'd25;
+        imm_out  = 32'd15;
+        alu_src  = 1;
+        aluop    = 3'b000;
+
+        // Test 5 : BEQ Taken
+        #10;
+        rs1_data = 32'd100;
+        rs2_data = 32'd100;
+        branch   = 1;
+        fn3      = 3'b000;
+        imm_out  = 32'd16;
+        address  = 32'h8000_0000;
+
+        // Test 6 : BNE Taken
+        #10;
+        rs1_data = 32'd100;
+        rs2_data = 32'd50;
+        fn3      = 3'b001;
+
+        // Test 7 : JAL
+        #10;
+        branch   = 0;
+        mux_inp  = 0;
+        imm_out  = 32'd64;
+        address  = 32'h8000_0000;
+
+        // Test 8 : JALR
+        #10;
+        mux_inp  = 1;
+        rs1_data = 32'h1000_0000;
+        imm_out  = 32'd32;
+
+        #20;
+        $finish;
+    end
+
+    initial begin
+        $monitor(
+            "T=%0t rs1=%h rs2=%h imm=%h aluop=%b branch=%b fn3=%b alu_out=%h and_out=%b pc_ex_out=%h",
+            $time,
+            rs1_data,
+            rs2_data,
+            imm_out,
+            aluop,
+            branch,
+            fn3,
+            alu_out,
+            and_out_ex,
+            pc_ex_out
+        );
+    end
+
+endmodule
