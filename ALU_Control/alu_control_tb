@@ -1,0 +1,118 @@
+module alu_control_tb;
+
+logic [2:0] alu_op;
+logic [2:0] fn3;
+logic fn7_5;
+logic [6:0] imm11_5;
+
+string alu_operations;
+logic [4:0] control_out;
+
+alu_control dut (
+    .alu_op(alu_op),
+    .fn3(fn3),
+    .fn7_5(fn7_5),
+    .imm11_5(imm11_5),
+    .alu_operations(alu_operations),
+    .control_out(control_out)
+);
+
+initial begin
+
+    // R-Type ADD
+    alu_op = 3'b000; fn3 = 3'b000;
+    fn7_5 = 0; imm11_5 = 0;
+    #10;
+
+    // R-Type SUB
+    fn7_5 = 1;
+    #10;
+
+    // R-Type SLL
+    fn3 = 3'b001;
+    #10;
+
+    // R-Type SLT
+    fn3 = 3'b010;
+    #10;
+
+    // R-Type SLTU
+    fn3 = 3'b011;
+    #10;
+
+    // R-Type XOR
+    fn3 = 3'b100;
+    #10;
+
+    // R-Type SRL
+    fn3 = 3'b101; fn7_5 = 0;
+    #10;
+
+    // R-Type SRA
+    fn7_5 = 1;
+    #10;
+
+    // R-Type OR
+    fn3 = 3'b110;
+    #10;
+
+    // R-Type AND
+    fn3 = 3'b111;
+    #10;
+
+    // I-Type SRLI
+    alu_op = 3'b001; fn3 = 3'b101;
+    imm11_5 = 7'b0000000;
+    #10;
+
+    // I-Type SRAI
+    imm11_5 = 7'b0100000;
+    #10;
+
+    // Load
+    alu_op = 3'b010;
+    #10;
+
+    // Store
+    alu_op = 3'b011;
+    #10;
+
+    // Branch BEQ
+    alu_op = 3'b100; fn3 = 3'b000;
+    #10;
+
+    // Branch BNE
+    fn3 = 3'b001;
+    #10;
+
+    // Branch BLT
+    fn3 = 3'b100;
+    #10;
+
+    // Branch BGE
+    fn3 = 3'b101;
+    #10;
+
+    // Branch BLTU
+    fn3 = 3'b110;
+    #10;
+
+    // Branch BGEU
+    fn3 = 3'b111;
+    #10;
+
+    // JAL / LUI / AUIPC
+    alu_op = 3'b110;
+    #10;
+
+    $finish;
+
+end
+
+initial begin
+    $monitor("Time=%0t | alu_op=%b | fn3=%b | fn7_5=%b | imm11_5=%b | Operation=%s | control_out=%b",
+        $time, alu_op, fn3, fn7_5, imm11_5,
+        alu_operations, control_out);
+end
+
+endmodule
