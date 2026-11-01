@@ -1,110 +1,30 @@
-module maincontrol( memtoreg,branch,memread,memwrite,alusrc,regwrite,aluop, mux_inp,opcode);
-output logic [1:0] memtoreg;
-output logic branch;
-output logic memread;
-output logic memwrite;
-output logic alusrc;
-output logic regwrite;
-output logic [2:0] aluop;
-output logic mux_inp;
-input logic [6:0] opcode;
+module id_stage(rs1,rs2,rd,opcode,fn3,fn7_5,imm,imm_uj,imm11_5,instruction);
+input logic [31:0] instruction;
+output logic [4:0] rs1,rs2,rd;
+output logic[6:0] opcode;
+output logic [2:0] fn3;
+output logic  fn7_5;
+output logic [11:0] imm;
+output logic [19:0] imm_uj;
+output logic [11:4] imm11_5;
+
 always_comb begin
-if (opcode==7'b0110011) begin //R type
-memtoreg=2'b00;
-branch=0;
-memread=0;
-memwrite=0;
-alusrc=0;
-regwrite=0;
-aluop=3'b000;
-mux_inp=0;
-end
-else if(opcode==7'b0010011) begin //I type
-memtoreg=2'b00;
-branch=0;
-memread=0;
-memwrite=0;
-alusrc=1;
-regwrite=1;
-aluop=3'b001;
-mux_inp=0;
+    rd       = 5'd0;
+    fn3      = 3'd0;
+    fn7_5    = 1'b0;
+    rs1      = 5'd0;
+    rs2      = 5'd0;
+    imm      = 12'd0;
+    imm_uj   = 20'd0;
+    imm11_5  = 7'd0;
+
+    opcode = 7'b0110011; // Hardcoded R-type
+
+    rd     = instruction[11:7];
+    fn3    = instruction[14:12];
+    rs1    = instruction[19:15];
+    rs2    = instruction[24:20];
+    fn7_5  = instruction[30];
 end
 
-else if(opcode==7'b0000011) begin //Load
-memtoreg=2'b01;
-branch=0;
-memread=1;
-memwrite=0;
-alusrc=1;
-regwrite=1;
-aluop=3'b010;
-mux_inp=0;
-end
-
-else if(opcode==7'b0100011) begin //Store
-memtoreg=2'b11;
-branch=0;
-memread=0;
-memwrite=1;
-alusrc=1;
-regwrite=0;
-aluop=3'b011;
-mux_inp=0;
-end
-
-else if(opcode==7'b1100011) begin //Branch
-memtoreg=2'b00;
-branch=1;
-memread=0;
-memwrite=0;
-alusrc=0;
-regwrite=0;
-aluop=3'b100;
-mux_inp=0;
-end
-
-else if(opcode==7'b1101111) begin //JAL
-memtoreg=2'b10;
-branch=0;
-memread=0;
-memwrite=0;
-alusrc=1;
-regwrite=1;
-aluop=3'b110;
-mux_inp=0;
-end
-
-else if(opcode==7'b1100111) begin //JALR
-memtoreg=2'b10;
-branch=0;
-memread=0;
-memwrite=0;
-alusrc=1;
-regwrite=1;
-aluop=3'b001;
-mux_inp=1;
-end
-
-else if(opcode==7'b0110111) begin //lui
-memtoreg=2'b10;
-branch=0;
-memread=0;
-memwrite=0;
-alusrc=1;
-regwrite=1;
-aluop=3'b110;
-mux_inp=0;
-end
-
-else if(opcode==7'b0010111) begin //auipc
-memtoreg=2'b10;
-branch=0;
-memread=0;
-memwrite=0;
-alusrc=1;
-regwrite=1;
-aluop=3'b000;
-mux_inp=0;
-end
-end
 endmodule
