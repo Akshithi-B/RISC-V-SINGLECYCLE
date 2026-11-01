@@ -1,0 +1,86 @@
+module imm_generator_tb;
+
+    logic [11:0] imm_input;
+    logic [2:0]  fn3;
+    logic [6:0]  opcode;
+    logic [19:0] imm_input_uj;
+    logic [31:0] imm_output;
+
+    // Instantiate DUT
+    imm_generator dut (
+        .imm_input(imm_input),
+        .fn3(fn3),
+        .opcode(opcode),
+        .imm_input_uj(imm_input_uj),
+        .imm_output(imm_output)
+    );
+
+    initial begin
+        imm_input    = 12'b0;
+        fn3          = 3'b0;
+        opcode       = 7'b0;
+        imm_input_uj = 20'b0;
+
+        // R-type: output should be zero
+        opcode = 7'b0110011;
+        #10;
+        $display("R-type:  opcode=%b imm_output=%h", opcode, imm_output);
+
+        // I-type ALU: +5
+        opcode    = 7'b0010011;
+        imm_input = 12'd5;
+        #10;
+        $display("I-type:  imm_input=%h imm_output=%h", imm_input, imm_output);
+
+        // I-type ALU: -1 (sign extension)
+        imm_input = 12'hFFF;
+        #10;
+        $display("I-type -1: imm_input=%h imm_output=%h", imm_input, imm_output);
+
+        // Load: +12
+        opcode    = 7'b0000011;
+        imm_input = 12'd12;
+        #10;
+        $display("Load:    imm_output=%h", imm_output);
+
+        // Store: -4
+        opcode    = 7'b0100011;
+        imm_input = 12'hFFC;
+        #10;
+        $display("Store:   imm_output=%h", imm_output);
+
+        // Branch: sample immediate bits
+        opcode    = 7'b1100011;
+        imm_input = 12'b000000001010;
+        #10;
+        $display("Branch:  imm_output=%h", imm_output);
+
+        // LUI: upper immediate
+        opcode        = 7'b0110111;
+        imm_input_uj  = 20'h12345;
+        #10;
+        $display("LUI:     imm_output=%h", imm_output);
+
+        // AUIPC: upper immediate
+        opcode        = 7'b0010111;
+        imm_input_uj  = 20'hABCDE;
+        #10;
+        $display("AUIPC:   imm_output=%h", imm_output);
+
+        // JAL: sample immediate bits
+        opcode        = 7'b1101111;
+        imm_input_uj  = 20'h00001;
+        #10;
+        $display("JAL:     imm_output=%h", imm_output);
+
+        // JALR: +8
+        opcode    = 7'b1100111;
+        imm_input = 12'd8;
+        #10;
+        $display("JALR:    imm_output=%h", imm_output);
+
+        $display("Testbench completed.");
+        $finish;
+    end
+
+endmodule
