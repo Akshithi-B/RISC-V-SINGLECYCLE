@@ -1,0 +1,83 @@
+module tb_id_stage;
+
+    // DUT inputs
+    logic [31:0] instruction;
+
+    // DUT outputs
+    logic [4:0] rs1, rs2, rd;
+    logic [6:0] opcode;
+    logic [2:0] fn3;
+    logic fn7_5;
+    logic [11:0] imm;
+    logic [19:0] imm_uj;
+    logic [11:4] imm11_5;
+
+    // Instantiate DUT
+    id_stage dut (
+        .rs1(rs1),
+        .rs2(rs2),
+        .rd(rd),
+        .opcode(opcode),
+        .fn3(fn3),
+        .fn7_5(fn7_5),
+        .imm(imm),
+        .imm_uj(imm_uj),
+        .imm11_5(imm11_5),
+        .instruction(instruction)
+    );
+
+    initial begin
+
+        // Test Case 1: ADD x5,x6,x7
+        // opcode = 0110011
+        // rd = 5
+        // rs1 = 6
+        // rs2 = 7
+        // funct3 = 000
+        // funct7 = 0000000
+
+        instruction = 32'b0000000_00111_00110_000_00101_0110011;
+        #10;
+
+        $display("===== ADD Instruction =====");
+        $display("instruction = %h", instruction);
+        $display("rd   = %0d", rd);
+        $display("rs1  = %0d", rs1);
+        $display("rs2  = %0d", rs2);
+        $display("fn3  = %0d", fn3);
+        $display("fn7_5= %0b", fn7_5);
+        $display("opcode = %b", opcode);
+
+        // Test Case 2: SUB x8,x9,x10
+        // funct7 = 0100000
+
+        instruction = 32'b0100000_01010_01001_000_01000_0110011;
+        #10;
+
+        $display("===== SUB Instruction =====");
+        $display("instruction = %h", instruction);
+        $display("rd   = %0d", rd);
+        $display("rs1  = %0d", rs1);
+        $display("rs2  = %0d", rs2);
+        $display("fn3  = %0d", fn3);
+        $display("fn7_5= %0b", fn7_5);
+        $display("opcode = %b", opcode);
+
+        // Test Case 3: Random R-type instruction
+        instruction = 32'b0000001_00011_00010_111_00001_0110011;
+        #10;
+
+        $display("===== Random Instruction =====");
+        $display("instruction = %h", instruction);
+        $display("rd   = %0d", rd);
+        $display("rs1  = %0d", rs1);
+        $display("rs2  = %0d", rs2);
+        $display("fn3  = %0d", fn3);
+        $display("fn7_5= %0b", fn7_5);
+        $display("opcode = %b", opcode);
+
+        $finish;
+
+    end
+
+endmodule
