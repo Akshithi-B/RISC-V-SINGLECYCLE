@@ -1,0 +1,101 @@
+`timescale 1ns / 1ps
+
+module alu_tb;
+
+    logic [4:0]  alu_control;
+    logic [31:0] rs1_data;
+    logic [31:0] rs2_data;
+
+    logic [31:0] alu_out;
+    logic        zero;
+
+    // DUT
+    alu DUT (
+        .alu_control(alu_control),
+        .rs1_data(rs1_data),
+        .rs2_data(rs2_data),
+        .alu_out(alu_out),
+        .zero(zero)
+    );
+
+    initial begin
+
+        // ADD
+        alu_control = 5'b00000;
+        rs1_data = 32'd10;
+        rs2_data = 32'd20;
+        #10;
+
+        // SUB
+        alu_control = 5'b00001;
+        rs1_data = 32'd30;
+        rs2_data = 32'd10;
+        #10;
+
+        // AND
+        alu_control = 5'b00010;
+        rs1_data = 32'hF0F0_F0F0;
+        rs2_data = 32'h0F0F_0F0F;
+        #10;
+
+        // OR
+        alu_control = 5'b00011;
+        #10;
+
+        // XOR
+        alu_control = 5'b00100;
+        #10;
+
+        // SLL
+        alu_control = 5'b00101;
+        rs1_data = 32'd5;
+        rs2_data = 32'd2;
+        #10;
+
+        // SRL
+        alu_control = 5'b00110;
+        rs1_data = 32'd20;
+        rs2_data = 32'd2;
+        #10;
+
+        // SRA
+        alu_control = 5'b00111;
+        rs1_data = 32'hFFFF_FFF0;
+        rs2_data = 32'd2;
+        #10;
+
+        // SLT
+        alu_control = 5'b01000;
+        rs1_data = 32'd10;
+        rs2_data = 32'd20;
+        #10;
+
+        // SLTU
+        alu_control = 5'b01001;
+        rs1_data = 32'd5;
+        rs2_data = 32'd15;
+        #10;
+
+        // ZERO FLAG TEST
+        alu_control = 5'b00001;
+        rs1_data = 32'd50;
+        rs2_data = 32'd50;
+        #10;
+
+        $finish;
+
+    end
+
+    initial begin
+        $monitor(
+            "T=%0t ALUCTRL=%b RS1=%h RS2=%h ALU_OUT=%h ZERO=%b",
+            $time,
+            alu_control,
+            rs1_data,
+            rs2_data,
+            alu_out,
+            zero
+        );
+    end
+
+endmodule
