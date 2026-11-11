@@ -24,19 +24,13 @@ module ex_stage (
     assign alu_b = (alu_src) ? imm_out : rs2_data;
 
     // ALU
-    always_comb begin
-        case (aluop)
-            3'b000: alu_out = rs1_data + alu_b;                     // ADD
-            3'b001: alu_out = rs1_data - alu_b;                     // SUB
-            3'b010: alu_out = rs1_data & alu_b;                     // AND
-            3'b011: alu_out = rs1_data | alu_b;                     // OR
-            3'b100: alu_out = rs1_data ^ alu_b;                     // XOR
-            3'b101: alu_out = rs1_data << alu_b[4:0];              // SLL
-            3'b110: alu_out = rs1_data >> alu_b[4:0];              // SRL
-            3'b111: alu_out = $signed(rs1_data) >>> alu_b[4:0];    // SRA
-            default: alu_out = 32'b0;
-        endcase
-    end
+   alu alu_inst (
+        .a      (rs1_data),
+        .b      (alu_b),
+        .aluop  (aluop),
+        .result (alu_out),
+        .zero   (zero)
+    );
 
     assign zero = (alu_out == 32'b0);
 
