@@ -1,66 +1,81 @@
-module ex_stage (
-    input  logic [31:0] rs1_data,
-    input  logic [31:0] rs2_data,
-    input  logic [31:0] imm_out,
-    input  logic [31:0] address,       // current PC
-    input  logic        branch,
-    input  logic        alu_src,
-    input  logic        fn7_5,
-    input  logic        mux_inp,       // JALR
-    input  logic [2:0]  fn3,
-    input  logic [6:0]  imm11_5,
-    input  logic [2:0]  aluop,
-    input  logic [6:0]  opcode,
+module ex_stage(
+    input logic [31:0] rs1_data,
+    input logic [31:0] rs2_data,
+    input logic [31:0] imm_out,
+    input logic [31:0] address,
 
-    output logic        and_out_ex,
+    input logic branch,
+    input logic alu_src,
+    input logic fn7_5,
+    input logic mux_inp,
+
+    input logic [2:0] fn3,
+    input logic [6:0] imm11_5,
+    input logic [2:0] aluop,
+    input logic [6:0] opcode,
+
+    output logic and_out_ex,
     output logic [31:0] alu_out,
     output logic [31:0] pc_ex_out
 );
 
-    logic [31:0] alu_b;
-    logic        zero;
+    // Internal signals
+    logic [31:0] alu_operand_b;
+    logic [31:0] pc_signed_offset;
 
-    // ALU second operand selection
-    assign alu_b = (alu_src) ? imm_out : rs2_data;
+    logic [4:0] alu_control_out;
+    logic zero;
 
-    // ALU
-   alu alu_inst (
-        .a      (rs1_data),
-        .b      (alu_b),
-        .aluop  (aluop),
-        .result (alu_out),
-        .zero   (zero)
-    );
 
-    assign zero = (alu_out == 32'b0);
-
-    // Branch decision
+    // ALU Operand Selection
     always_comb begin
-        and_out_ex = 1'b0;
-
-        if (branch) begin
-            case (fn3)
-                3'b000: and_out_ex = (rs1_data == rs2_data);                      // BEQ
-                3'b001: and_out_ex = (rs1_data != rs2_data);                      // BNE
-                3'b100: and_out_ex = ($signed(rs1_data) < $signed(rs2_data));     // BLT
-                3'b101: and_out_ex = ($signed(rs1_data) >= $signed(rs2_data));    // BGE
-                3'b110: and_out_ex = (rs1_data < rs2_data);                       // BLTU
-                3'b111: and_out_ex = (rs1_data >= rs2_data);                      // BGEU
-                default: and_out_ex = 1'b0;
-            endcase
-        end
+        if (alu_src == 1'b1)
+            alu_operand_b = imm_out;
+        else
+            alu_operand_b = rs2_data;
     end
 
-    // Branch/JAL/JALR target address generation
+
+    // ALU Control Instantiation
+    alu_control AC (
+        .alu_op(aluop),
+        .fn3(fn3),
+        .imm11_5(imm11_5),
+        .fn7_5(fn7_5),
+        .control_out(alu_control_out)
+    );
+
+
+    // ALU Instantiation
+    alu ALU (
+        .operand_a(rs1_data),
+        .operand_b(alu_operand_b),
+        .control_out(alu_control_out),
+        .alu_result(alu_out),
+        .zero(zero)
+    );
+
+
+    // PC + Immediate Offset
     always_comb begin
-        if (mux_inp) begin
-            // JALR
-            pc_ex_out = (rs1_data + imm_out) & ~32'd1;
-        end
-        else begin
-            // Branch or JAL
-            pc_ex_out = address + imm_out;
-        end
+        pc_signed_offset = address + imm_out;
+    end
+
+
+    // Branch / Jump Target Selection
+    always_comb begin
+        if (mux_inp == 1'b1)
+            pc_ex_out = {alu_out[31:1], 1'b0};
+        else
+            pc_ex_out = pc_signed_offset;
+    end
+
+
+    // Branch / Jump Taken Logic
+    always_comb begin
+        and_out_ex = (branch && zero) ||
+                     (opcode == 7'h6F) ||
+                     (opcode == 7'h67);
     end
 
 endmodule
