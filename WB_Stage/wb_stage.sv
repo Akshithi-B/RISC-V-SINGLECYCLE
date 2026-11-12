@@ -1,56 +1,78 @@
 module wb_stage(
-    input  logic [31:0] mem_out,           // data from data memory
-    input  logic [31:0] alu_out,
-    input  logic [31:0] return_addr,       // PC + 4
-    input  logic [31:0] imm_out,           // LUI immediate
-    input  logic [31:0] pc_signed_offset,  // AUIPC result
-    input  logic [1:0]  memtoreg,
-    input  logic [6:0]  opcode_out_d,
+    input logic [31:0] mem_out,
+    input logic [31:0] alu_out,
+    input logic [31:0] return_addr,
+    input logic [31:0] imm_out,
+    input logic [31:0] pc_signed_offset,
+
+    input logic [1:0] memtoreg,
+    input logic [6:0] opcode_out_d,
 
     output logic [31:0] wb_data
 );
 
-    // RISC-V Opcodes
-    localparam JAL   = 7'b1101111;
-    localparam JALR  = 7'b1100111;
-    localparam LUI   = 7'b0110111;
-    localparam AUIPC = 7'b0010111;
+always_comb begin
 
-    always_comb begin
-        case (memtoreg)
+    // Default value
+    wb_data = alu_out;
 
-            2'b00: begin
-                wb_data = alu_out;
-            end
+    case (memtoreg)
 
-            2'b01: begin
-                wb_data = mem_out;
-            end
+        // ALU result
+        2'b00: begin
+            wb_data = alu_out;
+        end
 
-            2'b10: begin
-                case (opcode_out_d)
+        // Memory data (Load)
+        2'b01: begin
+            wb_data = mem_out;
+        end
 
-                    JAL,
-                    JALR : wb_data = return_addr;
+        // Special instructions
+        2'b10: begin
 
-                    LUI  : wb_data = imm_out;
+            case (opcode_out_d)
 
-                    AUIPC: wb_data = pc_signed_offset;
+                // JAL
+                7'b1101111: begin
+                    wb_data = return_addr;
+                end
 
-                    default: wb_data = alu_out;
+                // JALR
+                7'b1100111: begin
+                    wb_data = return_addr;
+                end
 
-                endcase
-            end
+                // LUI
+                7'b0110111: begin
+                    wb_data = imm_out;
+                end
 
-            2'b11: begin
-                wb_data = alu_out;
-            end
+                // AUIPC
+                7'b0010111: begin
+                    wb_data = pc_signed_offset;
+                end
 
-            default: begin
-                wb_data = 32'b0;
-            end
+                // Other instructions
+                default: begin
+                    wb_data = alu_out;
+                end
 
-        endcase
-    end
+            endcase
+
+        end
+
+        // Default: ALU result
+        2'b11: begin
+            wb_data = alu_out;
+        end
+
+        default: begin
+            wb_data = alu_out;
+        end
+
+    endcase
+
+end
 
 endmodule
