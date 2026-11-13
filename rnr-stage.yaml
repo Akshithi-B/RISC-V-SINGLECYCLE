@@ -1,5 +1,4 @@
 yaml_version: 1
-
 stage: integration
 
 modules:
