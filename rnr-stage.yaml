@@ -42,8 +42,8 @@ modules:
  
 
   id_stage:
-    source_files: [ID_stage/id_stage_top.sv]
-    top_module: id_stage_top
+    source_files: [ID_stage/id_stage.sv]
+    top_module: id_stage
     ports: {imm_out: imm_output, opcode_out_d: opcode, fn3_out_d: fn3,
             mem_write: memwrite, mem_read: memread, alu_src: alusrc}
 
