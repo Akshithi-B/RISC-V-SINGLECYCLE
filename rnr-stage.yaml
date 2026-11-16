@@ -34,7 +34,7 @@ modules:
     
   main_control:
     source_files: [Main_Control/main_control.sv]
-    top_module: maincontrol
+    top_module: main_control
     ports: {reg_write: regwrite}
 
  
