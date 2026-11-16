@@ -44,7 +44,7 @@ module id_stage(
     );
 
     // 2. main control unit
-    maincontrol control (
+    main_control control (
         .memtoreg(memtoreg),
         .branch(branch),
         .memread(memread),
