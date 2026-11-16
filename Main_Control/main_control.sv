@@ -1,6 +1,6 @@
 `timescale 1ns / 1ps
 
-module maincontrol(opcode, fn3, memtoreg, branch, mux_inp, memread, memwrite, alusrc, regwrite, aluop);
+module main_control(opcode, fn3, memtoreg, branch, mux_inp, memread, memwrite, alusrc, regwrite, aluop);
 input  logic [6:0] opcode;
 input  logic [2:0] fn3;      // part of the spec interface, not used by the table
 output logic [1:0] memtoreg;
