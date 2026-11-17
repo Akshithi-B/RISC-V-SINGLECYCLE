@@ -1,122 +1,135 @@
-module single_cycle_riscv (
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date: 09.11.2026 22:28:37
+// Design Name: 
+// Module Name: single_cycle_riscv
+// Project Name: 
+// Target Devices: 
+// Tool Versions: 
+// Description: 
+// 
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////////////////////////
 
+module single_cycle_riscv(
     input  logic        clk,
     input  logic        reset,
     input  logic        stall,
-
     input  logic [31:0] instruction,
     input  logic [31:0] mem_out,
 
     output logic [31:0] rs2_data,
     output logic [31:0] alu_out,
-
     output logic        mem_write,
     output logic        mem_read,
-
     output logic [2:0]  fn3,
     output logic [6:0]  opcode,
     output logic [31:0] address
 );
 
-    // IF-Wires connections
-    logic        and_out_ex;
-    logic [31:0] pc_link;
-    logic [31:0] pc_target;
-    // ID- connections
+    // Internal signals
+
     logic [31:0] rs1_data;
     logic [31:0] imm_out;
     logic [31:0] wb_data;
-    logic [4:0]  rs1;
-    logic [4:0]  rs2;
-    logic [4:0]  rd;
-    logic branch;
-    logic alu_src;
-    logic reg_write;
-    logic mux_inp;
-    logic [1:0]  memtoreg;
-    logic [2:0]  aluop;
-    logic [6:0]  imm11_5;
-    // EX-Wires connection
+
+    logic [31:0] return_addr;
     logic [31:0] pc_ex_out;
 
-// instantiation of the modules 
+    logic [6:0] imm11_5;
+    logic fn7_5;
 
-    // IF Stage
-    if_stage IF_STAGE (
+    logic [2:0] aluop;
+    logic [1:0] memtoreg;
 
-        .clk              (clk),
-        .reset            (reset),
-        .stall            (stall),
+    logic branch;
+    logic alu_src;
+    logic mux_inp;
 
-        .and_out          (and_out_ex),
-        .pc_signed_offset (pc_target),
-
-        .pc_new           (pc_link),
-        .address          (address)
+    logic and_out_ex;
+    // IF STAGE
+    if_stage IF (
+        .clk(clk),
+        .reset(reset),
+        .stall(stall),
+        .and_out(and_out_ex),
+        .PC_so(pc_ex_out),
+        .address(address),
+        .PC_new(return_addr)
     );
 
-   
-    // ID Stage
-    id_stage ID_STAGE (
 
-        .clk  (clk),
-        .reset  (reset),
+    // ID STAGE 
+    id_stage_top ID (
+        .clk(clk),
+        .reset(reset),
+        .stall(stall),
         .instruction(instruction),
-        .wb_data    (wb_data),
-        .rs1_data   (rs1_data),
-        .rs2_data   (rs2_data),
-        .rs1  (rs1),
-        .rs2  (rs2),
-        .rd  (rd),
-        .imm_out  (imm_out),
-        .branch  (branch),
-        .alu_src  (alu_src),
-        .reg_write  (reg_write),
-        .mem_write  (mem_write),
-        .mem_read  (mem_read),
-        .memtoreg  (memtoreg),
-        .aluop      (aluop),
-        .mux_inp    (mux_inp),
-        .fn3        (fn3),
-        .opcode     (opcode),
-        .imm11_5    (imm11_5)
+        .wb_data(wb_data),
+
+        .rs1_data(rs1_data),
+        .rs2_data(rs2_data),
+        .imm_output(imm_out),
+
+        .opcode(opcode),
+        .imm11_5(imm11_5),
+        .fn3(fn3),
+        .fn7_5(fn7_5),
+
+        .aluop(aluop),
+        .memtoreg(memtoreg),
+        .branch(branch),
+        .memwrite(mem_write),
+        .memread(mem_read),
+        .alusrc(alu_src),
+        .mux_inp(mux_inp)
     );
 
-    
-    // EX Stage
-  
-    ex_stage EX_STAGE (
-        .rs1_data  (rs1_data),
-        .rs2_data  (rs2_data),
-        .imm_out (imm_out),
-        .address  (address),
-        .branch   (branch),
-        .alu_src  (alu_src),
-        .mux_inp (mux_inp),
-        .fn3  (fn3),
-        .aluop  (aluop),
-        .opcode (opcode),
-        .imm11_5  (imm11_5),
-        .and_out_ex (and_out_ex),
-        .alu_out  (alu_out),
-        .pc_ex_out (pc_ex_out)
+
+    // EX STAGE
+    ex_stage EX (
+        .rs1_data(rs1_data),
+        .rs2_data(rs2_data),
+        .imm_out(imm_out),
+        .address(address),
+
+        .branch(branch),
+        .alu_src(alu_src),
+        .fn7_5(fn7_5),
+        .mux_inp(mux_inp),
+
+        .fn3(fn3),
+        .imm11_5(imm11_5),
+        .aluop(aluop),
+        .opcode(opcode),
+
+        .and_out_ex(and_out_ex),
+        .alu_out(alu_out),
+        .pc_ex_out(pc_ex_out)
     );
 
-  
-    // Branch/Jump 
-    assign pc_target = pc_ex_out;
+    // WB STAGE
 
-    // WB Stage
-    WB_Stage WB_STAGE (
+    wb_stage WB (
+        .mem_out(mem_out),
+        .alu_out(alu_out),
+        .return_addr(return_addr),
+        .imm_out(imm_out),
+        .pc_signed_offset(pc_ex_out),
 
-        .mem_out (mem_out),
-        .alu_out  (alu_out),
-        .return_addr  (pc_link),
-        .imm_out  (imm_out),
-        .pc_signed_offset (pc_ex_out),
-        .memtoreg (memtoreg),
-        .opcode_out_d  (opcode),
-        .wb_data  (wb_data)
+        .memtoreg(memtoreg),
+        .opcode_out_d(opcode),
+
+        .wb_data(wb_data)
     );
 
 endmodule
+
